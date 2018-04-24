@@ -1,0 +1,102 @@
+<html>
+<body>
+<pre>
+
+#include <stdio.h>
+
+#include "NUC1xx.h"
+
+#include "Driver\DrvUART.h"
+
+#include "Driver\DrvGPIO.h"
+
+#include "Driver\DrvSYS.h"
+
+#include "LCD_Driver.h"
+
+int counter = 0;
+
+//USER DEFINED FUNCTION
+
+void GPIO_GPAB_CallBack()
+
+{
+
+int a;
+
+char TEXT1[16];
+
+//Highlighted one not needed
+
+counter++;
+
+print_lcd(3,"GPA interrupt !!");
+
+a=DrvGPIO_GetPortBits(E_GPA);
+
+sprintf(TEXT1,"port :: %x",a);
+
+print_lcd(0, TEXT1);
+
+}
+
+ 
+
+int main()
+
+{
+
+char TEXT[16];
+
+ 
+
+UNLOCKREG();
+
+SYSCLK->PWRCON.XTL12M_EN=1;
+
+DrvSYS_Delay(5000);
+
+SYSCLK->CLKSEL0.HCLK_S=0;
+
+LOCKREG();
+
+ 
+
+// setup GPA15 to get interrupt input
+
+DrvGPIO_Open(E_GPA,15,E_IO_INPUT);
+
+DrvGPIO_EnableInt(E_GPA, 15, E_IO_RISING, E_MODE_EDGE);
+
+DrvGPIO_SetDebounceTime(5, 1);
+
+DrvGPIO_EnableDebounce(E_GPA, 15);
+
+DrvGPIO_SetIntCallback(GPIO_GPAB_CallBack,NULL);
+
+ 
+
+Initial_panel();
+
+clr_all_panel();
+
+ 
+
+while(1)
+
+{
+
+sprintf(TEXT,"IRQ_A: %d",counter);
+
+print_lcd(1, TEXT);
+
+}
+
+ 
+
+}
+
+
+</pre>
+</body>
+</html>
